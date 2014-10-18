@@ -1,0 +1,11 @@
+package controllers
+
+import "github.com/revel/revel"
+
+type {{.AppName}} struct {
+	*revel.Controller
+}
+
+func (c {{.AppName}}) {{.MethodName}}() revel.Result {
+	return c.Render()
+}
