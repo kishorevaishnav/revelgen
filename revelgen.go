@@ -11,9 +11,8 @@ import (
 
 const (
 	ACTION          int    = 1 // 2nd Argument
-	SUB_ACTION      int    = 2
-	CONTROLLER_NAME int    = 3
-	MODEL_NAME      int    = 3 // 3rd Argument
+	CONTROLLER_NAME int    = 2
+	MODEL_NAME      int    = 2 // 3rd Argument
 	CONTR_FOL_PATH  string = "app/controllers/"
 	MODEL_FOL_PATH  string = "app/models/"
 	ROUTE_FOL_PATH  string = "conf/"
@@ -25,64 +24,35 @@ func main() {
 		os.Exit(1)
 	}
 	switch os.Args[ACTION] {
-	case "gc":
+	case "controller", "c":
 		generateController()
-	case "gm":
+	case "model", "m":
 		generateModel()
-	case "gr":
-		generateRoute()
-	case "s":
+	case "route", "r":
+		updateRoute()
+	case "scaffold", "s":
 		scaffoldRevel()
-	case "generate", "g":
-		switch os.Args[SUB_ACTION] {
-		case "controller", "c":
-			generateController()
-		case "model", "m":
-			generateModel()
-		case "route", "r":
-			generateRoute()
-		case "scaffold", "s":
-			scaffoldRevel()
-		default:
-			panic("No SubActions provided")
-		}
 	default:
-		panic("No options provided")
+		panic("No actions provided")
 	}
+	os.Exit(1)
 }
 
 type contStruct struct {
-	AppName    string
-	MethodName []string
+	ControllerName string
+	MethodNames    []string
 }
 
 func generateController() {
 	fmt.Println("you are in generateController")
 	contValue := &contStruct{
-		AppName:    strings.Title(os.Args[CONTROLLER_NAME]),
-		MethodName: []string{os.Args[4]},
+		ControllerName: strings.Title(os.Args[CONTROLLER_NAME]),
+		MethodNames:    os.Args[4:len(os.Args)],
 	}
+	println(os.Args[4], os.Args[5], os.Args[6])
 	p, err := load_parse_ControllerTemplate("controller", contValue)
 	checkError(err)
-	if !fileExists(CONTR_FOL_PATH + os.Args[CONTROLLER_NAME] + ".go") {
-		ioutil.WriteFile("app/controllers/"+os.Args[CONTROLLER_NAME]+".go", p.Bytes(), 0644)
-		fmt.Println("...completed.")
-	} else {
-		fmt.Println("file already exists")
-	}
-}
-
-func generateModel() {
-	fmt.Println("you are in generateModel")
-}
-
-func fileExists(name string) bool {
-	if _, err := os.Stat(name); err != nil {
-		if os.IsNotExist(err) {
-			return false
-		}
-	}
-	return true
+	writeFile(os.Args[CONTROLLER_NAME], p)
 }
 
 func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.Buffer, error) {
@@ -94,16 +64,45 @@ func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.
 	checkError(err)
 	return buf, nil
 }
-func generateRoute() {
-	fmt.Println("you are in generateRoute")
+
+func generateModel() {
+	fmt.Println("you are in generateModel")
 }
+
+func updateRoute() {
+	fmt.Println("you are in updateRoute")
+}
+
+func scaffoldRevel() {
+	generateController()
+	generateModel()
+	updateRoute()
+	println("you are in scaffold Revel")
+}
+
+func writeFile(name, content) {
+	file_name := CONTR_FOL_PATH + name + ".go"
+	if !fileExists(file_name) {
+		ioutil.WriteFile(file_name, content.Bytes(), 0644)
+		fmt.Println("...completed.")
+	} else {
+		fmt.Println("file already exists")
+	}
+
+}
+
+func fileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
 func checkError(err error) {
 	if err != nil {
 		fmt.Println("Fatal error ", err.Error())
 		os.Exit(1)
 	}
-}
-
-func scaffoldRevel() {
-	println("you are in scaffold Revel")
 }
