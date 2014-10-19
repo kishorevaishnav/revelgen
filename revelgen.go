@@ -16,9 +16,14 @@ const (
 	CONTR_FOL_PATH  string = "app/controllers/"
 	MODEL_FOL_PATH  string = "app/models/"
 	ROUTE_FOL_PATH  string = "conf/"
+	OVERWRITE_FILES bool   = true
+	DEBUG           bool   = true
 )
 
-var max_field_name_length int
+var (
+	max_field_name_length int
+	// validationNeeded      bool = false
+)
 
 func main() {
 	if os.Args[0] != "revelgen" {
@@ -67,8 +72,10 @@ func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.
 }
 
 type modelStruct struct {
-	ModelName string
-	Fields    []Fields
+	ModelName        string
+	Fields           []Fields
+	ValidationNeeded int
+	ValidationArray  []string
 }
 
 type Fields struct {
@@ -80,8 +87,10 @@ type Fields struct {
 
 func generateModel() {
 	fmt.Println("you are in generateModel")
-	fieldArray := os.Args[MODEL_NAME+1 : len(os.Args)]
+	var primaryField bool = false
+	var requiredArray []string
 	var lineFields []Fields
+	fieldArray := os.Args[MODEL_NAME+1 : len(os.Args)]
 	for key, value := range fieldArray {
 		fieldArray[key] = strings.Trim(value, ", ")
 		fieldSplit := strings.Split(fieldArray[key], ":")
@@ -91,18 +100,37 @@ func generateModel() {
 			fmt.Println("wrong data type", fieldSplit[0], ":", fieldSplit[1])
 			os.Exit(1)
 		}
+		if string(fieldSplit[0][len(fieldSplit[0])-1]) == "*" {
+			fieldSplit[0] = fieldSplit[0][0 : len(fieldSplit[0])-1]
+			requiredArray = append(requiredArray, fieldSplit[0])
+		}
 		if max_field_name_length < (strings.Count(fieldSplit[0], "") - 1) {
 			max_field_name_length = strings.Count(fieldSplit[0], "") - 1
 		}
 		lineFields = append(lineFields, Fields{Name: fieldSplit[0], Datatype: fieldSplit[1], Db_data: fieldSplit[0], Json_data: fieldSplit[0]})
+		if strings.ToLower(os.Args[MODEL_NAME])+"id" == strings.ToLower(fieldSplit[0]) {
+			primaryField = true
+		}
 	}
-	fmt.Println(max_field_name_length)
-	for _, v := range lineFields {
-		fmt.Println(v.Name, v.Datatype, v.Db_data, v.Json_data)
+
+	// check if the primary_key can be added or not.
+	if false == primaryField {
+		a := Fields{Name: strings.Title(os.Args[MODEL_NAME]) + "Id", Datatype: "int", Db_data: strings.Title(os.Args[MODEL_NAME]) + "Id", Json_data: strings.Title(os.Args[MODEL_NAME]) + "Id"}
+		lineFields = append([]Fields{a}, lineFields...)
+		if max_field_name_length < (strings.Count(os.Args[MODEL_NAME]+"Id", "") - 1) {
+			max_field_name_length = strings.Count(os.Args[MODEL_NAME]+"Id", "") - 1
+		}
 	}
+
+	// fmt.Println(max_field_name_length)
+	// for _, v := range lineFields {
+	// 	fmt.Println(v.Name, v.Datatype, v.Db_data, v.Json_data)
+	// }
 	modelValue := &modelStruct{
-		ModelName: strings.Title(os.Args[MODEL_NAME]),
-		Fields:    lineFields,
+		ModelName:        strings.Title(os.Args[MODEL_NAME]),
+		Fields:           lineFields,
+		ValidationNeeded: len(requiredArray),
+		ValidationArray:  requiredArray,
 	}
 	p, err := load_parse_ModelTemplate("model", modelValue)
 	checkError(err)
@@ -137,12 +165,19 @@ func scaffoldRevel() {
 }
 
 func writeFile(name string, content *bytes.Buffer, write_path string) {
-	file_name := write_path + name + ".go"
-	if !fileExists(file_name) {
-		ioutil.WriteFile(file_name, content.Bytes(), 0644)
+	filename := write_path + name + ".go"
+	if !fileExists(filename) || OVERWRITE_FILES {
+		ioutil.WriteFile(filename, content.Bytes(), 0644)
 		fmt.Println("...completed.")
 	} else {
 		fmt.Println("file already exists")
+	}
+	if DEBUG {
+		fmt.Println("------------ DEBUG ------------")
+		dat, err := ioutil.ReadFile(filename)
+		checkError(err)
+		fmt.Println(string(dat))
+		fmt.Println("============ DEBUG ============")
 	}
 	return
 }

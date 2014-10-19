@@ -12,8 +12,7 @@ type {{title .ModelName}} struct {
 {{range .Fields}}	{{with .}}{{formatFieldName .Name}} {{formatDataType .Datatype}} `db:"{{.Db_data}}" json:"{{.Json_data}}"`{{end}}
 {{end}}}
 
-func ({{firstLetterLower .ModelName}} *{{title .ModelName}}) Validate(v *revel.Validation) {
-	/*
-	v.Required({{firstLetterLower .ModelName}}.Name).Message("Name Required")
-	*/
-}
+{{$mfl := firstLetterLower .ModelName}}{{if .ValidationNeeded}}func ({{firstLetterLower .ModelName}} *{{title .ModelName}}) Validate(v *revel.Validation) {
+{{range .ValidationArray}}	{{$mfl}}.Required({{$mfl}}.{{.}}).Message("{{title .}} is required")
+{{end}}}
+{{end}}
