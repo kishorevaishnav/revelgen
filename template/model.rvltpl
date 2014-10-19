@@ -1,11 +1,19 @@
-package controllers
+package models
 
-import "github.com/revel/revel"
+import (
+	"fmt"
+	"github.com/coopernurse/gorp"
+	"github.com/revel/revel"
+	"regexp"
+	"time"
+)
 
-type {{.App}} struct {
-	*revel.Controller
-}
+type {{title .ModelName}} struct {
+{{range .Fields}}	{{with .}}{{formatFieldName .Name}} {{formatDataType .Datatype}} `db:"{{.Db_data}}" json:"{{.Json_data}}"`{{end}}
+{{end}}}
 
-func (c {{.App}}) Index() revel.Result {
-	return c.Render()
+func ({{firstLetterLower .ModelName}} *{{title .ModelName}}) Validate(v *revel.Validation) {
+	/*
+	v.Required({{firstLetterLower .ModelName}}.Name).Message("Name Required")
+	*/
 }
