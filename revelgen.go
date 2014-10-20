@@ -5,19 +5,22 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strings"
 	"text/template"
 )
 
 const (
-	ACTION          int    = 1 // 2nd Argument
-	CONTROLLER_NAME int    = 2
-	MODEL_NAME      int    = 2 // 3rd Argument
-	CONTR_FOL_PATH  string = "app/controllers/"
-	MODEL_FOL_PATH  string = "app/models/"
-	ROUTE_FOL_PATH  string = "conf/"
-	OVERWRITE_FILES bool   = true
-	DEBUG           bool   = true
+	ACTION          int = 1 // 2nd Argument
+	CONTROLLER_NAME int = 2
+	MODEL_NAME      int = 2 // 3rd Argument
+
+	CONTR_FOL_PATH string = "app/controllers/"
+	MODEL_FOL_PATH string = "app/models/"
+	ROUTE_FOL_PATH string = "conf/"
+
+	OVERWRITE_FILES bool = true
+	DEBUG           bool = true
 )
 
 var (
@@ -88,6 +91,8 @@ type Fields struct {
 func generateModel() {
 	fmt.Println("you are in generateModel")
 	var primaryField bool = false
+	var createdField bool = false
+	var updatedField bool = false
 	var requiredArray []string
 	var lineFields []Fields
 	fieldArray := os.Args[MODEL_NAME+1 : len(os.Args)]
@@ -108,17 +113,43 @@ func generateModel() {
 			max_field_name_length = strings.Count(fieldSplit[0], "") - 1
 		}
 		lineFields = append(lineFields, Fields{Name: fieldSplit[0], Datatype: fieldSplit[1], Db_data: fieldSplit[0], Json_data: fieldSplit[0]})
-		if strings.ToLower(os.Args[MODEL_NAME])+"id" == strings.ToLower(fieldSplit[0]) {
+		switch strings.ToLower(fieldSplit[0]) {
+		case strings.ToLower(os.Args[MODEL_NAME] + "id"), "id":
 			primaryField = true
+		case "updated":
+			updatedField = true
+		case "created":
+			createdField = true
 		}
+		// if strings.ToLower(os.Args[MODEL_NAME])+"id" == strings.ToLower(fieldSplit[0]) {
+		// 	primaryField = true
+		// }
 	}
 
 	// check if the primary_key can be added or not.
 	if false == primaryField {
-		a := Fields{Name: strings.Title(os.Args[MODEL_NAME]) + "Id", Datatype: "int", Db_data: strings.Title(os.Args[MODEL_NAME]) + "Id", Json_data: strings.Title(os.Args[MODEL_NAME]) + "Id"}
+		a := Fields{Name: strings.Title(os.Args[MODEL_NAME]) + "Id", Datatype: "int", Db_data: strings.Title(os.Args[MODEL_NAME]) + "id", Json_data: strings.Title(os.Args[MODEL_NAME]) + "id"}
 		lineFields = append([]Fields{a}, lineFields...)
 		if max_field_name_length < (strings.Count(os.Args[MODEL_NAME]+"Id", "") - 1) {
 			max_field_name_length = strings.Count(os.Args[MODEL_NAME]+"Id", "") - 1
+		}
+	}
+
+	// check if the created field can be added or not.
+	if false == createdField {
+		a := Fields{Name: "Created", Datatype: "int64", Db_data: "created", Json_data: "created"}
+		lineFields = append(lineFields, a)
+		if max_field_name_length < 7 {
+			max_field_name_length = 7
+		}
+	}
+
+	// check if the updated field can be added or not.
+	if false == updatedField {
+		a := Fields{Name: "Updated", Datatype: "int64", Db_data: "updated", Json_data: "updated"}
+		lineFields = append(lineFields, a)
+		if max_field_name_length < 7 {
+			max_field_name_length = 7
 		}
 	}
 
@@ -167,7 +198,9 @@ func scaffoldRevel() {
 func writeFile(name string, content *bytes.Buffer, write_path string) {
 	filename := write_path + name + ".go"
 	if !fileExists(filename) || OVERWRITE_FILES {
-		ioutil.WriteFile(filename, content.Bytes(), 0644)
+		ioutil.WriteFile(filename, content.Bytes(), 0777)
+		exec.Command("go", "fmt", filename).Output()
+		exec.Command("goimports", "-w=true", filename).Output()
 		fmt.Println("...completed.")
 	} else {
 		fmt.Println("file already exists")

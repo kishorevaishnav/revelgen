@@ -8,11 +8,41 @@ import (
 	"time"
 )
 
+{{$mfl := firstLetterLower .ModelName}}
+
 type {{title .ModelName}} struct {
-{{range .Fields}}	{{with .}}{{formatFieldName .Name}} {{formatDataType .Datatype}} `db:"{{.Db_data}}" json:"{{.Json_data}}"`{{end}}
+	{{range .Fields}}{{with .}}{{formatFieldName .Name}} {{formatDataType .Datatype}} `db:"{{.Db_data}}" json:"{{.Json_data}}"`{{end}}
 {{end}}}
 
-{{$mfl := firstLetterLower .ModelName}}{{if .ValidationNeeded}}func ({{firstLetterLower .ModelName}} *{{title .ModelName}}) Validate(v *revel.Validation) {
-{{range .ValidationArray}}	{{$mfl}}.Required({{$mfl}}.{{.}}).Message("{{title .}} is required")
-{{end}}}
+{{if .ValidationNeeded}}
+func ({{$mfl}} *{{title .ModelName}}) Validate(rv *revel.Validation) {
+	{{range .ValidationArray}}{{$mfl}}.Required({{$mfl}}.{{.}}).Message("{{title .}} is required"){{end}}
+}
 {{end}}
+
+// implement the PreInsert and PreUpdate hooks
+func ({{$mfl}} *{{title .ModelName}}) PreInsert(gs gorp.SqlExecutor) error {
+    {{$mfl}}.Created = time.Now().UnixNano()
+    {{$mfl}}.Updated = {{$mfl}}.Created
+    return nil
+}
+
+func ({{$mfl}} *{{title .ModelName}}) PreUpdate(gs gorp.SqlExecutor) error {
+    {{$mfl}}.Updated = time.Now().UnixNano()
+    return nil
+}
+
+// You can use the SqlExecutor to cascade additional SQL
+// Take care to avoid cycles. gorp won't prevent them.
+//
+// Here's an example of a cascading delete
+//
+/*
+func ({{$mfl}} *<edit_related_table_structure_name>) PreDelete(gs gorp.SqlExecutor) error {
+    query := "delete from invoice_test where PersonId=?"
+    err := gs.Exec(query, {{$mfl}}.Id); if err != nil {
+        return err
+    }
+    return nil
+}
+*/
