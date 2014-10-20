@@ -20,7 +20,27 @@ func ({{$mfl}} *{{title .ModelName}}) Validate(rv *revel.Validation) {
 }
 {{end}}
 
-// implement the PreInsert and PreUpdate hooks
+// Hook functions
+func ({{$mfl}} *{{title .ModelName}}) PostDelete(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{title .ModelName}}) PostGet(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{title .ModelName}}) PostInsert(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{title .ModelName}}) PostUpdate(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{title .ModelName}}) PreDelete(gs gorp.SqlExecutor) error {
+    return nil
+}
+
 func ({{$mfl}} *{{title .ModelName}}) PreInsert(gs gorp.SqlExecutor) error {
     {{$mfl}}.Created = time.Now().UnixNano()
     {{$mfl}}.Updated = {{$mfl}}.Created
@@ -32,17 +52,6 @@ func ({{$mfl}} *{{title .ModelName}}) PreUpdate(gs gorp.SqlExecutor) error {
     return nil
 }
 
-// You can use the SqlExecutor to cascade additional SQL
-// Take care to avoid cycles. gorp won't prevent them.
-//
-// Here's an example of a cascading delete
-//
-/*
-func ({{$mfl}} *<edit_related_table_structure_name>) PreDelete(gs gorp.SqlExecutor) error {
-    query := "delete from invoice_test where PersonId=?"
-    err := gs.Exec(query, {{$mfl}}.Id); if err != nil {
-        return err
-    }
+func ({{$mfl}} *{{title .ModelName}}) PostUpdate(gs gorp.SqlExecutor) error {
     return nil
 }
-*/

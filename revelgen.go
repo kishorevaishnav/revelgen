@@ -198,7 +198,7 @@ func scaffoldRevel() {
 func writeFile(name string, content *bytes.Buffer, write_path string) {
 	filename := write_path + name + ".go"
 	if !fileExists(filename) || OVERWRITE_FILES {
-		ioutil.WriteFile(filename, content.Bytes(), 0777)
+		ioutil.WriteFile(filename, content.Bytes(), 0644)
 		exec.Command("go", "fmt", filename).Output()
 		exec.Command("goimports", "-w=true", filename).Output()
 		fmt.Println("...completed.")
