@@ -62,11 +62,20 @@ func generateController() {
 	p, err := load_parse_ControllerTemplate("controller", contValue)
 	checkError(err)
 	writeFile(os.Args[CONTROLLER_NAME], p, CONTR_FOL_PATH)
+	fmt.Println("")
+	generateViews()
 }
 
+func generateViews() {
+	view_dir := "app/views/" + strings.ToLower(os.Args[CONTROLLER_NAME])
+	os.Mkdir(view_dir, 0775)
+	for _, v := range os.Args[CONTROLLER_NAME+1 : len(os.Args)] {
+		os.Create(view_dir + "/" + v + ".html")
+	}
+}
 func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.Buffer, error) {
-	filename := "./template/" + title + ".rvltpl"
-	t, err := template.ParseFiles(filename)
+	temp_data, _ := template_controller_rvltpl()
+	t, err := template.New("controller.rvltpl").Parse(string(temp_data))
 	checkError(err)
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, contValue)
@@ -175,8 +184,8 @@ func load_parse_ModelTemplate(title string, modelValue *modelStruct) (*bytes.Buf
 		"formatDataType":   func(a string) string { return fmt.Sprintf("%-*s", 8, a) },
 		"firstLetterLower": func(a string) string { return fmt.Sprintf(strings.ToLower(string(a[0]))) },
 	}
-	filename := "./template/" + title + ".rvltpl"
-	t, err := template.New("model.rvltpl").Funcs(funcMap).ParseFiles(filename)
+	temp_data, _ := template_model_rvltpl()
+	t, err := template.New("model.rvltpl").Funcs(funcMap).Parse(string(temp_data))
 	checkError(err)
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, modelValue)
@@ -196,7 +205,7 @@ func scaffoldRevel() {
 }
 
 func writeFile(name string, content *bytes.Buffer, write_path string) {
-	filename := write_path + name + ".go"
+	filename := strings.ToLower(write_path + name + ".go")
 	if !fileExists(filename) || OVERWRITE_FILES {
 		ioutil.WriteFile(filename, content.Bytes(), 0644)
 		exec.Command("go", "fmt", filename).Output()
