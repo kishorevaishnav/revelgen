@@ -17,6 +17,7 @@ const (
 
 	CONTR_FOL_PATH string = "app/controllers/"
 	MODEL_FOL_PATH string = "app/models/"
+	VIEW_FOL_PATH  string = "app/views/"
 	ROUTE_FOL_PATH string = "conf/"
 
 	OVERWRITE_FILES bool = true
@@ -27,6 +28,30 @@ var (
 	max_field_name_length int
 	// validationNeeded      bool = false
 )
+
+type contStruct struct {
+	ControllerName string
+	MethodNames    []string
+}
+
+type modelStruct struct {
+	ModelName        string
+	Fields           []Fields
+	ValidationNeeded int
+	ValidationArray  []string
+}
+
+type Fields struct {
+	Name      string
+	Datatype  string
+	Db_data   string
+	Json_data string
+}
+
+type viewStruct struct {
+	Name     string
+	FilePath string
+}
 
 func main() {
 	if os.Args[0] != "revelgen" {
@@ -48,11 +73,6 @@ func main() {
 	os.Exit(1)
 }
 
-type contStruct struct {
-	ControllerName string
-	MethodNames    []string
-}
-
 func generateController() {
 	fmt.Println("you are in generateController")
 	contValue := &contStruct{
@@ -67,34 +87,38 @@ func generateController() {
 }
 
 func generateViews() {
-	view_dir := "app/views/" + strings.ToLower(os.Args[CONTROLLER_NAME])
+	view_dir := VIEW_FOL_PATH + strings.ToLower(os.Args[CONTROLLER_NAME]) + "/"
 	os.Mkdir(view_dir, 0775)
+	temp_data, _ := template_view_rvltpl()
 	for _, v := range os.Args[CONTROLLER_NAME+1 : len(os.Args)] {
-		os.Create(view_dir + "/" + v + ".html")
+		viewValue := &viewStruct{
+			Name:     strings.Title(os.Args[CONTROLLER_NAME]) + "#" + strings.ToLower(v),
+			FilePath: strings.ToLower(view_dir + v + ".html"),
+		}
+		t, err := template.New("view.rvltpl").Parse(string(temp_data))
+		checkError(err)
+		buf := new(bytes.Buffer)
+		err = t.Execute(buf, viewValue)
+		checkError(err)
+		if !fileExists(view_dir+v+".html") || OVERWRITE_FILES {
+			ioutil.WriteFile(view_dir+v+".html", buf.Bytes(), 0644)
+		} else {
+			fmt.Println("view file already exists")
+		}
 	}
 }
 func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.Buffer, error) {
+	funcMap := template.FuncMap{
+		"title":            strings.Title,
+		"firstLetterLower": func(a string) string { return fmt.Sprintf(strings.ToLower(string(a[0]))) },
+	}
 	temp_data, _ := template_controller_rvltpl()
-	t, err := template.New("controller.rvltpl").Parse(string(temp_data))
+	t, err := template.New("controller.rvltpl").Funcs(funcMap).Parse(string(temp_data))
 	checkError(err)
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, contValue)
 	checkError(err)
 	return buf, nil
-}
-
-type modelStruct struct {
-	ModelName        string
-	Fields           []Fields
-	ValidationNeeded int
-	ValidationArray  []string
-}
-
-type Fields struct {
-	Name      string
-	Datatype  string
-	Db_data   string
-	Json_data string
 }
 
 func generateModel() {
@@ -188,6 +212,7 @@ func load_parse_ModelTemplate(title string, modelValue *modelStruct) (*bytes.Buf
 	t, err := template.New("model.rvltpl").Funcs(funcMap).Parse(string(temp_data))
 	checkError(err)
 	buf := new(bytes.Buffer)
+	os.MkdirAll(MODEL_FOL_PATH, 0755)
 	err = t.Execute(buf, modelValue)
 	checkError(err)
 	return buf, nil
