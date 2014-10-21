@@ -61,6 +61,7 @@ func main() {
 	switch os.Args[ACTION] {
 	case "controller", "c":
 		generateController()
+		generateViews()
 	case "model", "m":
 		generateModel()
 	case "route", "r":
@@ -83,7 +84,6 @@ func generateController() {
 	checkError(err)
 	writeFile(os.Args[CONTROLLER_NAME], p, CONTR_FOL_PATH)
 	fmt.Println("")
-	generateViews()
 }
 
 func generateViews() {
@@ -130,7 +130,7 @@ func generateModel() {
 	var lineFields []Fields
 	fieldArray := os.Args[MODEL_NAME+1 : len(os.Args)]
 	for key, value := range fieldArray {
-		fieldArray[key] = strings.Trim(value, ", ")
+		fieldArray[key] = strings.Trim(value, ", ") // TODO - Need to check why I added "," instead of just " ".
 		fieldSplit := strings.Split(fieldArray[key], ":")
 		switch fieldSplit[1] {
 		case "int", "int64", "string", "varchar", "text":
@@ -223,8 +223,8 @@ func updateRoute() {
 }
 
 func scaffoldRevel() {
-	generateController()
 	generateModel()
+	generateController()
 	updateRoute()
 	println("you are in scaffold Revel")
 }
