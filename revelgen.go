@@ -2,10 +2,12 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"text/template"
 )
@@ -22,11 +24,14 @@ const (
 
 	OVERWRITE_FILES bool = true
 	DEBUG           bool = true
+
+	FIELD_DATATYPE_REGEXP = `^([A-Za-z]\w{2,15})([\*\-]{0,1}):([A-Za-z]\w{2,15})(\((\d{0,2}),(\d{0,2})\)){0,1}$`
 )
 
 var (
 	max_field_name_length int
 	// validationNeeded      bool = false
+	allowed_datatype = [...]string{"bool", "byte", "complex64", "complex128", "error", "float32", "float64", "int", "int8", "int16", "int32", "int64", "rune", "string", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr"}
 )
 
 type contStruct struct {
@@ -38,7 +43,9 @@ type modelStruct struct {
 	ModelName        string
 	Fields           []Fields
 	ValidationNeeded int
-	ValidationArray  []string
+	RequiredArray    []string
+	MinimumArray     []string
+	MaximumArray     []string
 }
 
 type Fields struct {
@@ -83,7 +90,6 @@ func generateController() {
 	p, err := load_parse_ControllerTemplate("controller", contValue)
 	checkError(err)
 	writeFile(os.Args[CONTROLLER_NAME], p, CONTR_FOL_PATH)
-	fmt.Println("")
 }
 
 func generateViews() {
@@ -127,26 +133,45 @@ func generateModel() {
 	var createdField bool = false
 	var updatedField bool = false
 	var requiredArray []string
+	var minimumArray []string
+	var maximumArray []string
 	var lineFields []Fields
 	fieldArray := os.Args[MODEL_NAME+1 : len(os.Args)]
 	for key, value := range fieldArray {
 		fieldArray[key] = strings.Trim(value, ", ") // TODO - Need to check why I added "," instead of just " ".
-		fieldSplit := strings.Split(fieldArray[key], ":")
-		switch fieldSplit[1] {
-		case "int", "int64", "string", "varchar", "text":
-		default:
-			fmt.Println("wrong data type", fieldSplit[0], ":", fieldSplit[1])
+		fds, err := fld_dtype_sep(fieldArray[key])
+		if err != nil {
+			fmt.Println(err)
 			os.Exit(1)
 		}
-		if string(fieldSplit[0][len(fieldSplit[0])-1]) == "*" {
-			fieldSplit[0] = fieldSplit[0][0 : len(fieldSplit[0])-1]
-			requiredArray = append(requiredArray, fieldSplit[0])
+		f_name, f_data_type, f_required, f_min, f_max := fds[0], fds[1], fds[2], fds[3], fds[4]
+
+		// fieldSplit := strings.Split(fieldArray[key], ":")
+		// switch fieldSplit[1] {
+		// case "int", "int64", "string", "varchar", "text":
+		// default:
+		// 	fmt.Println("wrong data type", fieldSplit[0], ":", fieldSplit[1])
+		// 	os.Exit(1)
+		// }
+		// if string(fieldSplit[0][len(fieldSplit[0])-1]) == "*" {
+		// 	fieldSplit[0] = fieldSplit[0][0 : len(fieldSplit[0])-1]
+		// 	requiredArray = append(requiredArray, fieldSplit[0])
+		// }
+
+		if f_required == "" {
+			requiredArray = append(requiredArray, f_name)
 		}
-		if max_field_name_length < (strings.Count(fieldSplit[0], "") - 1) {
-			max_field_name_length = strings.Count(fieldSplit[0], "") - 1
+		if f_min == "" {
+			minimumArray = append(minimumArray, {f_name : f_min})
 		}
-		lineFields = append(lineFields, Fields{Name: fieldSplit[0], Datatype: fieldSplit[1], Db_data: fieldSplit[0], Json_data: fieldSplit[0]})
-		switch strings.ToLower(fieldSplit[0]) {
+		if f_max == "" {
+			maximumArray = append(maximumArray, f_name)
+		}
+		if max_field_name_length < (strings.Count(f_name, "") - 1) {
+			max_field_name_length = strings.Count(f_name, "") - 1
+		}
+		lineFields = append(lineFields, Fields{Name: f_name, Datatype: f_data_type, Db_data: f_name, Json_data: f_name})
+		switch strings.ToLower(f_name) {
 		case strings.ToLower(os.Args[MODEL_NAME] + "id"), "id":
 			primaryField = true
 		case "updated":
@@ -194,7 +219,9 @@ func generateModel() {
 		ModelName:        strings.Title(os.Args[MODEL_NAME]),
 		Fields:           lineFields,
 		ValidationNeeded: len(requiredArray),
-		ValidationArray:  requiredArray,
+		RequiredArray:    requiredArray,
+		MinimumArray:     minimumArray,
+		MaximumArray:     maximumArray,
 	}
 	p, err := load_parse_ModelTemplate("model", modelValue)
 	checkError(err)
@@ -262,5 +289,27 @@ func checkError(err error) {
 	if err != nil {
 		fmt.Println("Fatal error ", err.Error())
 		os.Exit(1)
+	}
+}
+
+func fld_dtype_sep(orig_string string) (parsed_string []string, err error) {
+	r, _ := regexp.Compile(FIELD_DATATYPE_REGEXP)
+	if r.MatchString(orig_string) == true {
+		split := r.FindAllString(orig_string, -1)
+		valid_datatype := false
+		for _, v := range allowed_datatype {
+			if v == split[3] {
+				valid_datatype = true
+			}
+		}
+		if valid_datatype {
+			return []string{split[1], split[3], split[2], split[5], split[6]}, nil
+		} else {
+			err := errors.New("Wrong Datatype")
+			return nil, err
+		}
+	} else {
+		err := errors.New("Wrong Format")
+		return nil, err
 	}
 }
