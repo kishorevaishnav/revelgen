@@ -25,7 +25,7 @@ const (
 	OVERWRITE_FILES bool = true
 	DEBUG           bool = true
 
-	FIELD_DATATYPE_REGEXP = `^([A-Za-z]\w{2,15})([\*\-]{0,1}):([A-Za-z]\w{2,15})(\((\d{0,2}),(\d{0,2})\)){0,1}$`
+	FIELD_DATATYPE_REGEXP = `^([A-Za-z]{2,15})([\*\-]{0,1}):([A-Za-z]{2,15})(\((\d{0,2}),(\d{0,2})\)){0,1}$`
 )
 
 var (
@@ -158,13 +158,13 @@ func generateModel() {
 		// 	requiredArray = append(requiredArray, fieldSplit[0])
 		// }
 
-		if f_required == "" {
+		if f_required != "" {
 			requiredArray = append(requiredArray, f_name)
 		}
-		if f_min == "" {
-			minimumArray = append(minimumArray, {f_name : f_min})
+		if f_min != "" {
+			minimumArray = append(minimumArray, f_name)
 		}
-		if f_max == "" {
+		if f_max != "" {
 			maximumArray = append(maximumArray, f_name)
 		}
 		if max_field_name_length < (strings.Count(f_name, "") - 1) {
@@ -295,15 +295,15 @@ func checkError(err error) {
 func fld_dtype_sep(orig_string string) (parsed_string []string, err error) {
 	r, _ := regexp.Compile(FIELD_DATATYPE_REGEXP)
 	if r.MatchString(orig_string) == true {
-		split := r.FindAllString(orig_string, -1)
+		split := r.FindAllStringSubmatch(orig_string, -1)
 		valid_datatype := false
 		for _, v := range allowed_datatype {
-			if v == split[3] {
+			if v == split[0][3] {
 				valid_datatype = true
 			}
 		}
 		if valid_datatype {
-			return []string{split[1], split[3], split[2], split[5], split[6]}, nil
+			return []string{split[0][1], split[0][3], split[0][2], split[0][5], split[0][6]}, nil
 		} else {
 			err := errors.New("Wrong Datatype")
 			return nil, err

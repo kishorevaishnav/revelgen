@@ -16,16 +16,8 @@ type {{title .ModelName}} struct {
 
 {{if .ValidationNeeded}}
 func ({{$mfl}} *{{title .ModelName}}) Validate(rv *revel.Validation) {
-	{{range .ValidationArray}}{{$mfl}}.Required({{$mfl}}.{{.}}).Message("{{title .}} is required"){{end}}
-    {{range .MinimumArray}}{{$mfl}}.MinSize({{$mfl}}.{{.}}).Message("{{title .}} is required"){{end}}
-    {{range .MaximumArray}}{{$mfl}}.MaxSize({{$mfl}}.{{.}}).Message("{{title .}} is required"){{end}}
+    {{range .RequiredArray}}rv.Check({{$mfl}}.{{.}}, revel.Required{}).Message("{{.}} is required"){{end}}
 }
-    if {{$mfl}}.Validation.HasErrors() {
-        // Store the validation errors in the flash context and redirect.
-        {{$mfl}}.Validation.Keep()
-        {{$mfl}}.FlashParams()
-        return {{$mfl}}.Redirect(Hotels.Settings)
-    }
 {{end}}
 
 // Hook functions
@@ -57,9 +49,5 @@ func ({{$mfl}} *{{title .ModelName}}) PreInsert(gs gorp.SqlExecutor) error {
 
 func ({{$mfl}} *{{title .ModelName}}) PreUpdate(gs gorp.SqlExecutor) error {
     {{$mfl}}.Updated = time.Now().UnixNano()
-    return nil
-}
-
-func ({{$mfl}} *{{title .ModelName}}) PostUpdate(gs gorp.SqlExecutor) error {
     return nil
 }

@@ -4,6 +4,7 @@ import "github.com/revel/revel"
 
 type {{.ControllerName}} struct {
 	*revel.Controller
+	GorpController
 }
 {{$cont_name := .ControllerName}}
 {{range .MethodNames}}
