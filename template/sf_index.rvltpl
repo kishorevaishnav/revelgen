@@ -1,0 +1,27 @@
+{{$pfn := .Pfn}}<h1>Listing {{.ScaffoldName}}</h1>
+
+<table>
+  <thead>
+    <tr>{{range .Fields}}{{with .}}{{if ne .Name $pfn}}{{if ne .Name "Created"}}{{if ne .Name "Updated"}}
+      <th>{{formatFieldName .Name}}</th>{{end}}{{end}}{{end}}{{end}}{{end}}
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+{{`	{{range .`}}{{.Lcase_sfname}}{{`}}`}}
+      <tr>{{range .Fields}}{{with .}}{{if ne .Name $pfn}}{{if ne .Name "Created"}}{{if ne .Name "Updated"}}
+{{`        <td>{{.`}}{{formatFieldName .Name}}{{`}}</td>`}}{{end}}{{end}}{{end}}{{end}}{{end}}
+{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Show" .{{.Pfn}}{{`}}">Show</a></td>`}}
+{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Edit" .{{.Pfn}}{{`}}">Edit</a></td>`}}
+{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Destroy" .{{.Pfn}}{{`}}" onclick="return confirm('Are you sure?');" data-method="delete">Destroy</a></td>`}}
+      </tr>
+{{`	{{end}}`}}
+  </tbody>
+</table>
+
+<br>
+
+{{`<a href="{{url "`}}{{.ScaffoldName}}{{`.New"}}">New Post</a>`}}

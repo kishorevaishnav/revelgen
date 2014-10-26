@@ -1,0 +1,12 @@
+{{$lcsf := .Lcase_sfname}}{{$pfn := .Pfn}}{{`{{if .flash.success}}`}}
+{{`<p id="notice">{{.flash.success}}</p>`}}
+{{`{{end}}`}}
+
+{{range .Fields}}{{with .}}{{if ne .Name $pfn}}{{if ne .Name "Created"}}{{if ne .Name "Updated"}}<p>
+  <strong>{{formatFieldName .Name}}:</strong>
+{{`  {{.`}}{{$lcsf}}.{{formatFieldName .Name}}{{`}}`}}
+</p>
+{{end}}{{end}}{{end}}{{end}}{{end}}
+
+{{`<a href="{{url "`}}{{.ScaffoldName}}.Edit" .{{.Lcase_sfname}}.{{.Pfn}}{{`}}">Edit</a> |`}}
+{{`<a href="{{url "`}}{{.ScaffoldName}}{{`.Index"}}">Back</a>`}}

@@ -1,0 +1,51 @@
+package models
+
+import (
+	"fmt"
+	"github.com/coopernurse/gorp"
+	"github.com/revel/revel"
+	"regexp"
+	"time"
+)
+{{$mfl := .Ol}}
+type {{.ScaffoldName}} struct {
+	{{range .Fields}}{{with .}}{{formatFieldName .Name}} {{formatDataType .Datatype}} `db:"{{.Db_data}}" json:"{{.Json_data}}"`{{end}}
+{{end}}}
+
+{{if .ValidationNeeded}}
+func ({{$mfl}} *{{.ScaffoldName}}) Validate(rv *revel.Validation) {
+    {{range .RequiredArray}}rv.Check({{$mfl}}.{{.}}, revel.Required{}).Message("{{.}} is required"){{end}}
+}
+{{end}}
+
+// Hook functions
+func ({{$mfl}} *{{.ScaffoldName}}) PostDelete(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{.ScaffoldName}}) PostGet(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{.ScaffoldName}}) PostInsert(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{.ScaffoldName}}) PostUpdate(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{.ScaffoldName}}) PreDelete(gs gorp.SqlExecutor) error {
+    return nil
+}
+
+func ({{$mfl}} *{{.ScaffoldName}}) PreInsert(gs gorp.SqlExecutor) error {
+    {{$mfl}}.Created = time.Now().UnixNano()
+    {{$mfl}}.Updated = {{$mfl}}.Created
+    return nil
+}
+
+func ({{$mfl}} *{{.ScaffoldName}}) PreUpdate(gs gorp.SqlExecutor) error {
+    {{$mfl}}.Updated = time.Now().UnixNano()
+    return nil
+}

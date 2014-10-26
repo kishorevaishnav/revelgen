@@ -1,0 +1,14 @@
+<h1>New {{.ScaffoldName}}</h1>
+
+<div class="container">
+  <div class="row">
+    <div class="span6">
+{{`      {{template "flash.html" .}}`}}
+    </div>
+  </div>
+</div>
+{{`<form action="{{url "`}}{{.ScaffoldName}}{{`.Save"}}" method="POST">`}}
+{{`{{template "`}}{{.Lcase_sfname}}{{`/_form.html" .}}`}}
+</form>
+
+{{`<a href="{{url "`}}{{.ScaffoldName}}{{`.Index"}}">Back</a>`}}

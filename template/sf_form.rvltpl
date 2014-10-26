@@ -1,0 +1,26 @@
+{{$lcsf := .Lcase_sfname}}{{$pfn := .Pfn}}{{`{{if .flash.error}}`}}
+{{`{{$ec := 0}}`}}
+{{`{{range .errors}}`}}
+{{`  {{$ec := 50}}`}}
+{{`{{end}}`}}
+  <div id="error_explanation">
+    <h2> prohibited this posts from being saved:</h2>
+    <ul>
+{{`    {{range .errors}}`}}
+{{`      <li>{{.}}</li>`}}
+{{`    {{end}}`}}
+    </ul>
+  </div>
+{{`{{end}}`}}
+
+{{range .Fields}}{{with .}}{{if ne .Name $pfn}}{{if ne .Name "Created"}}{{if ne .Name "Updated"}}
+{{`{{with $field := field "`}}{{$lcsf}}.{{formatFieldName .Name}}{{`" .}}`}}
+<div class="field">
+  <label for="name">{{formatFieldName .Name}}</label><br>
+{{`  <input type="text" name="{{$field.Name}}" size="16" value="{{$field.Value}}{{$field.Flash}}"> `}}
+{{`  <span class="error">{{$field.Error}}</span>`}}
+</div>
+{{`{{end}}`}}{{end}}{{end}}{{end}}{{end}}{{end}}
+<div class="actions">
+  <input type="submit" value="Submit" />
+</div>

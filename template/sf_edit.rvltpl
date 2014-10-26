@@ -1,0 +1,8 @@
+<h1>Editing {{.ScaffoldName}}</h1>
+
+{{`<form action="{{url "`}}{{.ScaffoldName}}.Update" .{{.Lcase_sfname}}.{{.Pfn}}{{`}}" method="POST">`}}
+{{`{{template "`}}{{.Lcase_sfname}}{{`/_form.html" .}}`}}
+</form>
+
+{{`<a href="{{url "`}}{{.ScaffoldName}}.Show" .{{.Lcase_sfname}}.{{.Pfn}}{{`}}">Show</a> |`}}
+{{`<a href="{{url "`}}{{.ScaffoldName}}{{`.Index"}}">Back</a>`}}

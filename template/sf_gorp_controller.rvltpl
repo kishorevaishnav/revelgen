@@ -1,0 +1,99 @@
+{{$lcsfn := .Lcase_sfname}}
+{{$pfn := .Pfn}}
+package controllers
+
+import (
+	"log"
+	"{{.Base_App_Folder}}/app/models"
+
+	"github.com/revel/revel"
+)
+
+type {{.ScaffoldName}} struct {
+	*revel.Controller
+	GorpController
+}
+
+func ({{.Ol}} *{{.ScaffoldName}}) GetId({{.Pfn}} int) (models.{{.ScaffoldName}}, error) {
+	var {{.Lcase_sfname}} models.{{.ScaffoldName}}
+	err := {{.Ol}}.Txn.SelectOne(&{{.Lcase_sfname}}, "SELECT * FROM {{.ScaffoldName}} WHERE {{formatFieldName .Pfn}}=?", {{.Pfn}})
+	if err != nil {
+		println("***", err, "(Can't able to retrieve a record from table {{.ScaffoldName}})")
+		return models.{{.ScaffoldName}}{}, err
+	}
+	return {{.Lcase_sfname}}, nil
+}
+
+func ({{.Ol}} *{{.ScaffoldName}}) GetAll() ([]models.{{.ScaffoldName}}, error) {
+	var {{.Lcase_sfname}} []models.{{.ScaffoldName}}
+	_, err := {{.Ol}}.Txn.Select(&{{.Lcase_sfname}}, "SELECT * FROM {{.ScaffoldName}}")
+	if err != nil {
+		println("***", err, "(Can't able to retrieve records from table {{.ScaffoldName}})")
+		return nil, err
+	}
+	return {{.Lcase_sfname}}, nil
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) Index() revel.Result {
+	{{.Lcase_sfname}}, _ := {{.Ol}}.GetAll()
+	return {{.Ol}}.Render({{.Lcase_sfname}})
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) New() revel.Result {
+	return {{.Ol}}.Render()
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) Edit({{.Pfn}} int) revel.Result {
+	{{.Lcase_sfname}}, _ := {{.Ol}}.GetId({{.Pfn}})
+	log.Println({{.Lcase_sfname}})
+	return {{.Ol}}.Render({{.Lcase_sfname}})
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) Destroy({{.Pfn}} int) revel.Result {
+	_, err := {{.Ol}}.Txn.Delete(&models.{{.ScaffoldName}}{ {{formatFieldName .Pfn}}: {{.Pfn}} })
+	if err != nil {
+		log.Println(err, "Couldn't delete the record from {{.ScaffoldName}} table.")
+	}
+	return {{.Ol}}.Redirect({{.ScaffoldName}}.Index)
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) Show({{.Pfn}} int) revel.Result {
+	{{.Lcase_sfname}}, _ := {{.Ol}}.GetId({{.Pfn}})
+	return {{.Ol}}.Render({{.Lcase_sfname}})
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) Save({{.Lcase_sfname}} models.{{.ScaffoldName}}) revel.Result {
+	{{.Lcase_sfname}}.Validate({{.Ol}}.Validation)
+	if {{.Ol}}.Validation.HasErrors() {
+		{{.Ol}}.Validation.Keep()
+		{{.Ol}}.FlashParams()
+		return {{.Ol}}.Redirect({{.ScaffoldName}}.New)
+	}
+
+	err := {{.Ol}}.Txn.Insert(&{{.Lcase_sfname}})
+	if err != nil {
+		log.Println(err, "Couldn't insert the record to the {{.ScaffoldName}} table.")
+	}
+
+	return {{.Ol}}.Redirect({{.ScaffoldName}}.Index)
+}
+
+func ({{.Ol}} {{.ScaffoldName}}) Update({{.Pfn}} int, {{.Lcase_sfname}} models.{{.ScaffoldName}}) revel.Result {
+	{{.Lcase_sfname}}.Validate({{.Ol}}.Validation)
+	if {{.Ol}}.Validation.HasErrors() {
+		{{.Ol}}.Validation.Keep()
+		{{.Ol}}.FlashParams()
+		return {{.Ol}}.Redirect({{.ScaffoldName}}.Edit, {{.Pfn}})
+	}
+
+	{{.Lcase_sfname}}_a := models.{{.ScaffoldName}} {
+		{{formatFieldName .Pfn}}: {{.Pfn}},{{range .Fields}}{{with .}}{{if ne .Name $pfn}}{{if ne .Name "Created"}}{{if ne .Name "Updated"}}
+		{{formatFieldName .Name}}: {{$lcsfn}}.{{formatFieldName .Name}},{{end}}{{end}}{{end}}{{end}}{{end}}
+	}
+	_, err := {{.Ol}}.Txn.Update(&{{.Lcase_sfname}}_a)
+	if err != nil {
+		log.Println(err, "Couldn't update the records to {{.ScaffoldName}} table.")
+	}
+
+	return {{.Ol}}.Redirect({{.ScaffoldName}}.Index)
+}

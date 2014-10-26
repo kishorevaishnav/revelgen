@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -113,6 +114,7 @@ func generateViews() {
 		}
 	}
 }
+
 func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.Buffer, error) {
 	funcMap := template.FuncMap{
 		"title":            strings.Title,
@@ -127,7 +129,7 @@ func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.
 	return buf, nil
 }
 
-func generateModel() {
+func gnModel_return(mn int) ([]Fields, []string, []string, []string, string) {
 	fmt.Println("you are in generateModel")
 	var primaryField bool = false
 	var createdField bool = false
@@ -136,7 +138,8 @@ func generateModel() {
 	var minimumArray []string
 	var maximumArray []string
 	var lineFields []Fields
-	fieldArray := os.Args[MODEL_NAME+1 : len(os.Args)]
+	var primaryFieldName string
+	fieldArray := os.Args[mn+1 : len(os.Args)]
 	for key, value := range fieldArray {
 		fieldArray[key] = strings.Trim(value, ", ") // TODO - Need to check why I added "," instead of just " ".
 		fds, err := fld_dtype_sep(fieldArray[key])
@@ -145,18 +148,6 @@ func generateModel() {
 			os.Exit(1)
 		}
 		f_name, f_data_type, f_required, f_min, f_max := fds[0], fds[1], fds[2], fds[3], fds[4]
-
-		// fieldSplit := strings.Split(fieldArray[key], ":")
-		// switch fieldSplit[1] {
-		// case "int", "int64", "string", "varchar", "text":
-		// default:
-		// 	fmt.Println("wrong data type", fieldSplit[0], ":", fieldSplit[1])
-		// 	os.Exit(1)
-		// }
-		// if string(fieldSplit[0][len(fieldSplit[0])-1]) == "*" {
-		// 	fieldSplit[0] = fieldSplit[0][0 : len(fieldSplit[0])-1]
-		// 	requiredArray = append(requiredArray, fieldSplit[0])
-		// }
 
 		if f_required != "" {
 			requiredArray = append(requiredArray, f_name)
@@ -172,24 +163,23 @@ func generateModel() {
 		}
 		lineFields = append(lineFields, Fields{Name: f_name, Datatype: f_data_type, Db_data: f_name, Json_data: f_name})
 		switch strings.ToLower(f_name) {
-		case strings.ToLower(os.Args[MODEL_NAME] + "id"), "id":
+		case strings.ToLower(os.Args[mn] + "id"), "id":
+			primaryFieldName = strings.ToLower(f_name)
 			primaryField = true
 		case "updated":
 			updatedField = true
 		case "created":
 			createdField = true
 		}
-		// if strings.ToLower(os.Args[MODEL_NAME])+"id" == strings.ToLower(fieldSplit[0]) {
-		// 	primaryField = true
-		// }
 	}
 
 	// check if the primary_key can be added or not.
 	if false == primaryField {
-		a := Fields{Name: strings.Title(os.Args[MODEL_NAME]) + "Id", Datatype: "int", Db_data: strings.Title(os.Args[MODEL_NAME]) + "id", Json_data: strings.Title(os.Args[MODEL_NAME]) + "id"}
+		a := Fields{Name: strings.Title(os.Args[mn]) + "Id", Datatype: "int", Db_data: strings.Title(os.Args[mn]) + "id", Json_data: strings.Title(os.Args[mn]) + "id"}
+		primaryFieldName = strings.ToLower(os.Args[mn] + "Id")
 		lineFields = append([]Fields{a}, lineFields...)
-		if max_field_name_length < (strings.Count(os.Args[MODEL_NAME]+"Id", "") - 1) {
-			max_field_name_length = strings.Count(os.Args[MODEL_NAME]+"Id", "") - 1
+		if max_field_name_length < (strings.Count(os.Args[mn]+"Id", "") - 1) {
+			max_field_name_length = strings.Count(os.Args[mn]+"Id", "") - 1
 		}
 	}
 
@@ -210,18 +200,18 @@ func generateModel() {
 			max_field_name_length = 7
 		}
 	}
+	return lineFields, requiredArray, minimumArray, maximumArray, primaryFieldName
+}
 
-	// fmt.Println(max_field_name_length)
-	// for _, v := range lineFields {
-	// 	fmt.Println(v.Name, v.Datatype, v.Db_data, v.Json_data)
-	// }
+func generateModel() {
+	lf, ra, mia, maa, _ := gnModel_return(MODEL_NAME)
 	modelValue := &modelStruct{
 		ModelName:        strings.Title(os.Args[MODEL_NAME]),
-		Fields:           lineFields,
-		ValidationNeeded: len(requiredArray),
-		RequiredArray:    requiredArray,
-		MinimumArray:     minimumArray,
-		MaximumArray:     maximumArray,
+		Fields:           lf,
+		ValidationNeeded: len(ra),
+		RequiredArray:    ra,
+		MinimumArray:     mia,
+		MaximumArray:     maa,
 	}
 	p, err := load_parse_ModelTemplate("model", modelValue)
 	checkError(err)
@@ -247,13 +237,6 @@ func load_parse_ModelTemplate(title string, modelValue *modelStruct) (*bytes.Buf
 
 func updateRoute() {
 	fmt.Println("you are in updateRoute")
-}
-
-func scaffoldRevel() {
-	generateModel()
-	generateController()
-	updateRoute()
-	println("you are in scaffold Revel")
 }
 
 func writeFile(name string, content *bytes.Buffer, write_path string) {
@@ -309,6 +292,7 @@ func fld_dtype_sep(orig_string string) (parsed_string []string, err error) {
 			return nil, err
 		}
 	} else {
+		log.Println(orig_string)
 		err := errors.New("Wrong Format")
 		return nil, err
 	}
