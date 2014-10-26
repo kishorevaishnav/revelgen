@@ -175,11 +175,11 @@ func gnModel_return(mn int) ([]Fields, []string, []string, []string, string) {
 
 	// check if the primary_key can be added or not.
 	if false == primaryField {
-		a := Fields{Name: strings.Title(os.Args[mn]) + "Id", Datatype: "int", Db_data: strings.Title(os.Args[mn]) + "id", Json_data: strings.Title(os.Args[mn]) + "id"}
-		primaryFieldName = strings.ToLower(os.Args[mn] + "Id")
+		a := Fields{Name: strings.Title(os.Args[mn]) + "id", Datatype: "int", Db_data: strings.Title(os.Args[mn]) + "id", Json_data: strings.Title(os.Args[mn]) + "id"}
+		primaryFieldName = strings.ToLower(os.Args[mn] + "id")
 		lineFields = append([]Fields{a}, lineFields...)
-		if max_field_name_length < (strings.Count(os.Args[mn]+"Id", "") - 1) {
-			max_field_name_length = strings.Count(os.Args[mn]+"Id", "") - 1
+		if max_field_name_length < (strings.Count(os.Args[mn]+"id", "") - 1) {
+			max_field_name_length = strings.Count(os.Args[mn]+"id", "") - 1
 		}
 	}
 

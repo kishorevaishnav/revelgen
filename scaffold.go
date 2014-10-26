@@ -144,5 +144,34 @@ func scaffoldRevel() {
 		fmt.Println("view file already exists")
 	}
 
+	temp_data, _ = template_sf_gorp_rvltpl()
+	t, err = template.New("sf_gorp.rvltpl").Funcs(funcMap).Parse(string(temp_data))
+	checkError(err)
+	buf = new(bytes.Buffer)
+	err = t.Execute(buf, abc)
+	checkError(err)
+	log.Println(CONTR_FOL_PATH + "gorp.go")
+	if !fileExists(CONTR_FOL_PATH + "gorp.go") {
+		ioutil.WriteFile(CONTR_FOL_PATH+"gorp.go", buf.Bytes(), 0644)
+	} else {
+		fmt.Println("gorp.go file already exists")
+		ioutil.WriteFile(CONTR_FOL_PATH+"gorp.go_scaffold", buf.Bytes(), 0644)
+		fmt.Println(CONTR_FOL_PATH + "gorp.go_scaffold file created.")
+	}
+
+	temp_data, _ = template_sf_gorp_init_rvltpl()
+	t, err = template.New("sf_gorp_init.rvltpl").Funcs(funcMap).Parse(string(temp_data))
+	checkError(err)
+	buf = new(bytes.Buffer)
+	err = t.Execute(buf, abc)
+	checkError(err)
+	if !fileExists(CONTR_FOL_PATH + "init.go") {
+		ioutil.WriteFile(CONTR_FOL_PATH+"init.go", buf.Bytes(), 0644)
+	} else {
+		fmt.Println("init.go file already exists")
+		ioutil.WriteFile(CONTR_FOL_PATH+"init.go_scaffold", buf.Bytes(), 0644)
+		fmt.Println(CONTR_FOL_PATH + "init.go_scaffold file created.")
+	}
+
 	log.Println("Scaffold completed.")
 }

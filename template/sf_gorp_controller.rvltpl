@@ -50,7 +50,7 @@ func ({{.Ol}} {{.ScaffoldName}}) Edit({{.Pfn}} int) revel.Result {
 }
 
 func ({{.Ol}} {{.ScaffoldName}}) Destroy({{.Pfn}} int) revel.Result {
-	_, err := {{.Ol}}.Txn.Delete(&models.{{.ScaffoldName}}{ {{formatFieldName .Pfn}}: {{.Pfn}} })
+	_, err := {{.Ol}}.Txn.Delete(&models.{{.ScaffoldName}}{ {{.Pfn}}: {{.Pfn}} })
 	if err != nil {
 		log.Println(err, "Couldn't delete the record from {{.ScaffoldName}} table.")
 	}

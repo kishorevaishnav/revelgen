@@ -14,7 +14,7 @@ type {{.ScaffoldName}} struct {
 
 {{if .ValidationNeeded}}
 func ({{$mfl}} *{{.ScaffoldName}}) Validate(rv *revel.Validation) {
-    {{range .RequiredArray}}rv.Check({{$mfl}}.{{.}}, revel.Required{}).Message("{{.}} is required"){{end}}
+    {{range .RequiredArray}}rv.Check({{$mfl}}.{{formatFieldName .}}, revel.Required{}).Message("{{.}} is required"){{end}}
 }
 {{end}}
 
