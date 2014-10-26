@@ -63,7 +63,7 @@ func ({{.Ol}} {{.ScaffoldName}}) Show({{.Pfn}} int) revel.Result {
 }
 
 func ({{.Ol}} {{.ScaffoldName}}) Save({{.Lcase_sfname}} models.{{.ScaffoldName}}) revel.Result {
-	{{.Lcase_sfname}}.Validate({{.Ol}}.Validation)
+	{{if .ValidationNeeded}}{{.Lcase_sfname}}.Validate({{.Ol}}.Validation){{end}}
 	if {{.Ol}}.Validation.HasErrors() {
 		{{.Ol}}.Validation.Keep()
 		{{.Ol}}.FlashParams()

@@ -83,7 +83,6 @@ func main() {
 }
 
 func generateController() {
-	fmt.Println("you are in generateController")
 	contValue := &contStruct{
 		ControllerName: strings.Title(os.Args[CONTROLLER_NAME]),
 		MethodNames:    os.Args[CONTROLLER_NAME+1 : len(os.Args)],
@@ -130,7 +129,6 @@ func load_parse_ControllerTemplate(title string, contValue *contStruct) (*bytes.
 }
 
 func gnModel_return(mn int) ([]Fields, []string, []string, []string, string) {
-	fmt.Println("you are in generateModel")
 	var primaryField bool = false
 	var createdField bool = false
 	var updatedField bool = false
@@ -288,12 +286,12 @@ func fld_dtype_sep(orig_string string) (parsed_string []string, err error) {
 		if valid_datatype {
 			return []string{split[0][1], split[0][3], split[0][2], split[0][5], split[0][6]}, nil
 		} else {
-			err := errors.New("Wrong Datatype")
+			err := errors.New("Wrong Datatype " + orig_string)
 			return nil, err
 		}
 	} else {
 		log.Println(orig_string)
-		err := errors.New("Wrong Format")
+		err := errors.New("Wrong Format " + orig_string)
 		return nil, err
 	}
 }

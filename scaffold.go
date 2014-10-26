@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"text/template"
@@ -153,6 +154,8 @@ func scaffoldRevel() {
 	log.Println(CONTR_FOL_PATH + "gorp.go")
 	if !fileExists(CONTR_FOL_PATH + "gorp.go") {
 		ioutil.WriteFile(CONTR_FOL_PATH+"gorp.go", buf.Bytes(), 0644)
+		exec.Command("go", "fmt", CONTR_FOL_PATH+"gorp.go").Output()
+		exec.Command("goimports", "-w=true", CONTR_FOL_PATH+"gorp.go").Output()
 	} else {
 		fmt.Println("gorp.go file already exists")
 		ioutil.WriteFile(CONTR_FOL_PATH+"gorp.go_scaffold", buf.Bytes(), 0644)
@@ -167,6 +170,8 @@ func scaffoldRevel() {
 	checkError(err)
 	if !fileExists(CONTR_FOL_PATH + "init.go") {
 		ioutil.WriteFile(CONTR_FOL_PATH+"init.go", buf.Bytes(), 0644)
+		exec.Command("go", "fmt", CONTR_FOL_PATH+"init.go").Output()
+		exec.Command("goimports", "-w=true", CONTR_FOL_PATH+"init.go").Output()
 	} else {
 		fmt.Println("init.go file already exists")
 		ioutil.WriteFile(CONTR_FOL_PATH+"init.go_scaffold", buf.Bytes(), 0644)

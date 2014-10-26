@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"database/sql"
 	"{{.Base_App_Folder}}/app/models"
 
@@ -23,6 +24,11 @@ func InitDB() {
 
 	Dbm.AddTable(models.{{.ScaffoldName}}{}).SetKeys(true, "{{.Pfn}}")
 	// AddTable By Scaffold
+
+	err := Dbm.CreateTablesIfNotExists()
+	if err != nil {
+		log.Println("***", err, " Not able to create tables.")
+	}
 }
 
 type GorpController struct {

@@ -14,9 +14,9 @@
 {{`	{{range .`}}{{.Lcase_sfname}}{{`}}`}}
       <tr>{{range .Fields}}{{with .}}{{if ne .Name $pfn}}{{if ne .Name "Created"}}{{if ne .Name "Updated"}}
 {{`        <td>{{.`}}{{formatFieldName .Name}}{{`}}</td>`}}{{end}}{{end}}{{end}}{{end}}{{end}}
-{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Show" .{{.Pfn}}{{`}}">Show</a></td>`}}
-{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Edit" .{{.Pfn}}{{`}}">Edit</a></td>`}}
-{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Destroy" .{{.Pfn}}{{`}}" onclick="return confirm('Are you sure?');" data-method="delete">Destroy</a></td>`}}
+{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Show" .{{formatFieldName .Pfn}}{{`}}">Show</a></td>`}}
+{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Edit" .{{formatFieldName .Pfn}}{{`}}">Edit</a></td>`}}
+{{`        <td><a href="{{url "`}}{{.ScaffoldName}}.Destroy" .{{formatFieldName .Pfn}}{{`}}" onclick="return confirm('Are you sure?');" data-method="delete">Destroy</a></td>`}}
       </tr>
 {{`	{{end}}`}}
   </tbody>

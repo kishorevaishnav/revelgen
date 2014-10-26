@@ -12,11 +12,11 @@ type {{.ScaffoldName}} struct {
 	{{range .Fields}}{{with .}}{{formatFieldName .Name}} {{formatDataType .Datatype}} `db:"{{.Db_data}}" json:"{{.Json_data}}"`{{end}}
 {{end}}}
 
-{{if .ValidationNeeded}}
 func ({{$mfl}} *{{.ScaffoldName}}) Validate(rv *revel.Validation) {
+{{if .ValidationNeeded}}
     {{range .RequiredArray}}rv.Check({{$mfl}}.{{formatFieldName .}}, revel.Required{}).Message("{{.}} is required"){{end}}
-}
 {{end}}
+}
 
 // Hook functions
 func ({{$mfl}} *{{.ScaffoldName}}) PostDelete(gs gorp.SqlExecutor) error {

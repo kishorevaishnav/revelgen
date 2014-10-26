@@ -8,5 +8,5 @@
 </p>
 {{end}}{{end}}{{end}}{{end}}{{end}}
 
-{{`<a href="{{url "`}}{{.ScaffoldName}}.Edit" .{{.Lcase_sfname}}.{{.Pfn}}{{`}}">Edit</a> |`}}
+{{`<a href="{{url "`}}{{.ScaffoldName}}.Edit" .{{.Lcase_sfname}}.{{formatFieldName .Pfn}}{{`}}">Edit</a> |`}}
 {{`<a href="{{url "`}}{{.ScaffoldName}}{{`.Index"}}">Back</a>`}}
