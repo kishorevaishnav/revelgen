@@ -1,3 +1,4 @@
+[![baby-gopher](https://raw.github.com/drnic/babygopher-site/gh-pages/images/babygopher-logo-small.png)](http://www.babygopher.org)
 revelgen
 ========
 
